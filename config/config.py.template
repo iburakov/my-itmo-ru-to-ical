@@ -1,7 +1,7 @@
 ISU_USERNAME = ""
 ISU_PASSWORD = ""
-SCHEDULE_START_DATE = "YYYY-MM-DD"
-SCHEDULE_END_DATE = "YYYY-MM-DD"
+SCHEDULE_START_DATE = "YYYY-MM-DD"  # 2021-08-20, for example
+SCHEDULE_END_DATE = "YYYY-MM-DD"  # 2022-08-20, for example
 
 # optional, needed for exception monitoring, see https://docs.sentry.io/product/sentry-basics/dsn-explainer/
 SENTRY_DSN = ""

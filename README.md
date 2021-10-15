@@ -15,7 +15,7 @@
 	```bash
 	git clone https://github.com/iburakov/my-itmo-ru-to-ical.git && cd my-itmo-ru-to-ical
 	```
-1. Заполнить username/password ИСУ в конфиге:
+1. Заполнить конфиг:
 	```bash
 	cp config/config.py.template config/config.py && vim config/config.py
 	```
@@ -28,7 +28,5 @@
 1. PROFIT!!!
 
 PS. Ссылка содержит хеш имени пользователя и пароля. Меняются данные - меняется ссылка.
-
-PPS. Временной диапазон запрашиваемых с my.itmo.ru событий задаётся в конфиге и может быть изменён по необходимости (следующий курс, например).
 
 PPPS. Если вдруг стандартный порт порт занят, поправьте первый порт в `docker-compose.yml` на свободный.
