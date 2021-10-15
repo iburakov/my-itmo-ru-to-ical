@@ -1,0 +1,7 @@
+.idea
+config/config.py
+venv
+
+__pycache__/
+*.py[cod]
+*$py.class

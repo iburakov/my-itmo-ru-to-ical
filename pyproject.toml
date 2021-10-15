@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "my-itmo-ru-to-ical"
+version = "1.0.0"
+description = "A simple app exporting the scheudle from my.itmo.ru in iCalendar format."
+authors = ["iburakov <speedwatson@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+ics = "^0.7"
+Flask = "^2.0.2"
+requests = "^2.26.0"
+sentry-sdk = {extras = ["flask"], version = "^1.4.3"}
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
