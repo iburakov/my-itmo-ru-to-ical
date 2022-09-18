@@ -15,10 +15,12 @@ _event_type_to_tag_map = {
 _raw_event_key_names = {
     "group": "Группа",
     "teacher_name": "Преподаватель",
+    "teacher_fio": "Преподаватель",
     "zoom_url": "Ссылка на Zoom",
     "zoom_password": "Пароль Zoom",
     "zoom_info": "Доп. информация для Zoom",
     "note": "Примечание",
+
 }
 
 _CALENDAR_CREATOR_VALUE = "my-itmo-ru-to-ical"
@@ -40,7 +42,26 @@ def get_raw_events(auth_token: str) -> List[dict]:
         for lesson in day["lessons"]:
             raw_events.append(dict(date=day["date"], **lesson))
 
+    raw_pe = get_raw_pe_lessons(auth_token)
+    raw_events = raw_events + raw_pe
     return raw_events
+
+def get_raw_pe_lessons(auth_token: str) -> List[dict]:
+    resp = requests.get(
+        "https://my.itmo.ru/api/sport/my_sport/calendar",
+        params=dict(
+            date_start=current_app.config["SCHEDULE_START_DATE"],
+            date_end=current_app.config["SCHEDULE_END_DATE"],
+        ),
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    resp.raise_for_status()
+    days = resp.json()["result"]
+    raw_lessons = []
+    for day in days:
+      for lesson in day["lessons"]:
+        raw_lessons.append(dict(**lesson))
+    return raw_lessons
 
 
 def _event_type_to_tag(t: str):
@@ -50,7 +71,7 @@ def _event_type_to_tag(t: str):
 def _raw_event_to_description(re: dict):
     lines = []
     for key, name in _raw_event_key_names.items():
-        if re[key]:
+        if key in re:
             lines.append(f"{name}: {re[key]}")
 
     _msk_formatted_datetime = (datetime.utcnow() + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M")
@@ -76,15 +97,25 @@ def raw_events_to_calendar(raw_events: List[dict]):
     calendar = Calendar()
     calendar.creator = _CALENDAR_CREATOR_VALUE
     for raw_event in raw_events:
-        event = Event(
-            name=f"[{_event_type_to_tag(raw_event['type'])}] {raw_event['subject']}",
-            begin=isoparse(f"{raw_event['date']}T{raw_event['time_start']}:00+03:00"),
-            end=isoparse(f"{raw_event['date']}T{raw_event['time_end']}:00+03:00"),
-            description=_raw_event_to_description(raw_event),
-            location=_raw_event_to_location(raw_event),
-        )
-        if raw_event["zoom_url"]:
-            event.url = raw_event["zoom_url"]
+        print(raw_event)
+        if "section_name" in raw_event:
+            event = Event(
+              name=f"[Физра] {raw_event['section_name']}",
+              begin=isoparse(f"{raw_event['date']}"),
+              end=isoparse(f"{raw_event['date_end']}"),
+              description=_raw_event_to_description(raw_event),
+              location=raw_event["room_name"],
+            )
+        else:
+            event = Event(
+                name=f"[{_event_type_to_tag(raw_event['type'])}] {raw_event['subject']}",
+                begin=isoparse(f"{raw_event['date']}T{raw_event['time_start']}:00+03:00"),
+                end=isoparse(f"{raw_event['date']}T{raw_event['time_end']}:00+03:00"),
+                description=_raw_event_to_description(raw_event),
+                location=_raw_event_to_location(raw_event),
+            )
+            if raw_event["zoom_url"]:
+                event.url = raw_event["zoom_url"]
 
         calendar.events.add(event)
 
