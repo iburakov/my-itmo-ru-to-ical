@@ -12,7 +12,7 @@ from utils import timed_cache
 
 _CLIENT_ID = "student-personal-cabinet"
 _REDIRECT_URI = "https://my.itmo.ru/login/callback"
-_PROVIDER = "https://login.itmo.ru/auth/realms/itmo"
+_PROVIDER = "https://id.itmo.ru/auth/realms/itmo"
 
 
 def generate_code_verifier():
