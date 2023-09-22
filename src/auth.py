@@ -7,7 +7,7 @@ from hashlib import sha256
 
 import requests
 
-from utils import timed_cache
+from utils.timed_cache import timed_cache
 
 # inspired by https://www.stefaanlippens.net/oauth-code-flow-pkce.html
 
