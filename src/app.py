@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 import sentry_sdk
 from flask import Flask, Response
@@ -16,7 +15,7 @@ logging.getLogger("werkzeug").handlers = []  # prevent duplicated logging output
 app = Flask(__name__)
 application = app  # for wsgi compliance
 
-app.config.from_pyfile(Path("../config/config.py"))
+app.config.from_prefixed_env("ITMO_ICAL", loads=str)
 
 _creds_hash = get_credentials_hash(app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
 _calendar_route = f"/calendar/{_creds_hash}"

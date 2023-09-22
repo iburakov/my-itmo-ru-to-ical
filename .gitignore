@@ -1,6 +1,7 @@
 .idea
-config/config.py
+.vscode
 venv
+.venv
 
 __pycache__/
 *.py[cod]
