@@ -7,7 +7,6 @@ on:
 jobs:
   run-code-checks:
     uses: ./.github/workflows/code-checks.yml
-    name: Check the code
 
   build-and-publish:
     runs-on: ubuntu-22.04
