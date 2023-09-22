@@ -17,6 +17,8 @@ ruff = "^0.0.291"
 black = "^23.9.1"
 mypy = "^1.5.1"
 vulture = "^2.9.1"
+types-requests = "^2.31.0.3"
+types-python-dateutil = "^2.8.19.14"
 
 
 [build-system]
@@ -30,6 +32,12 @@ line-length = 120
 
 [tool.mypy]
 files = ["src"]
+
+[[tool.mypy.overrides]]
+# https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+# it's better to disable untyped modules on a per-module basis
+module = ["ics.*"]
+ignore_missing_imports = true
 
 
 [tool.ruff]
