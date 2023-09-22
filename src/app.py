@@ -6,17 +6,19 @@ from flask import Flask, Response
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from auth import get_access_token
-from calendar_processing import get_raw_events, raw_events_to_calendar
-from creds import get_creds_hash
+from calendar_processing import raw_events_to_calendar
+from credentials_hashing import get_credentials_hash
+from main_api import get_raw_events
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("werkzeug").handlers = []  # to prevent duplicated logging output
+logging.getLogger("werkzeug").handlers = []  # prevent duplicated logging output
+
 app = Flask(__name__)
 application = app  # for wsgi compliance
 
 app.config.from_pyfile(Path("../config/config.py"))
 
-_creds_hash = get_creds_hash(app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
+_creds_hash = get_credentials_hash(app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
 _calendar_route = f"/calendar/{_creds_hash}"
 app.logger.info(f"URL path for calendar: {_calendar_route}")
 

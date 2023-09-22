@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-import requests
 from dateutil.parser import isoparse
-from flask import current_app
 from ics import Calendar, Event
 
 _event_type_to_tag_map = {
@@ -21,27 +19,6 @@ _raw_event_key_names = {
     "zoom_info": "Доп. информация для Zoom",
     "note": "Примечание",
 }
-
-_CALENDAR_CREATOR_VALUE = "my-itmo-ru-to-ical"
-
-
-def get_raw_events(auth_token: str) -> list[dict]:
-    resp = requests.get(
-        "https://my.itmo.ru/api/schedule/schedule/personal",
-        params=dict(
-            date_start=current_app.config["SCHEDULE_START_DATE"],
-            date_end=current_app.config["SCHEDULE_END_DATE"],
-        ),
-        headers={"Authorization": f"Bearer {auth_token}"},
-    )
-    resp.raise_for_status()
-    days = resp.json()["data"]
-    raw_events = []
-    for day in days:
-        for lesson in day["lessons"]:
-            raw_events.append(dict(date=day["date"], **lesson))
-
-    return raw_events
 
 
 def _event_type_to_tag(t: str):
@@ -75,7 +52,7 @@ def _raw_event_to_location(re: dict):
 
 def raw_events_to_calendar(raw_events: list[dict]):
     calendar = Calendar()
-    calendar.creator = _CALENDAR_CREATOR_VALUE
+    calendar.creator = "my-itmo-ru-to-ical"
     for raw_event in raw_events:
         event = Event(
             name=f"[{_event_type_to_tag(raw_event['type'])}] {raw_event['subject']}",
