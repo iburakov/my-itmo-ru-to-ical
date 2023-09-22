@@ -7,23 +7,23 @@ from hashlib import sha256
 
 import requests
 
-# inspired by https://www.stefaanlippens.net/oauth-code-flow-pkce.html
 from utils import timed_cache
 
+# inspired by https://www.stefaanlippens.net/oauth-code-flow-pkce.html
 _CLIENT_ID = "student-personal-cabinet"
 _REDIRECT_URI = "https://my.itmo.ru/login/callback"
 _PROVIDER = "https://id.itmo.ru/auth/realms/itmo"
 
 
 def generate_code_verifier():
-    code_verifier = urlsafe_b64encode(os.urandom(40)).decode('utf-8')
-    return re.sub('[^a-zA-Z0-9]+', '', code_verifier)
+    code_verifier = urlsafe_b64encode(os.urandom(40)).decode("utf-8")
+    return re.sub("[^a-zA-Z0-9]+", "", code_verifier)
 
 
 def get_code_challenge(code_verifier: str):
-    code_challenge = sha256(code_verifier.encode('utf-8')).digest()
-    code_challenge = urlsafe_b64encode(code_challenge).decode('utf-8')
-    return code_challenge.replace('=', '')  # remove base64 padding
+    code_challenge = sha256(code_verifier.encode("utf-8")).digest()
+    code_challenge = urlsafe_b64encode(code_challenge).decode("utf-8")
+    return code_challenge.replace("=", "")  # remove base64 padding
 
 
 @timed_cache(minutes=55)
@@ -31,19 +31,22 @@ def get_access_token(username: str, password: str):
     code_verifier = generate_code_verifier()
     code_challenge = get_code_challenge(code_verifier)
 
-    auth_resp = requests.get(_PROVIDER + "/protocol/openid-connect/auth", params=dict(
-        protocol="oauth2",
-        response_type="code",
-        client_id=_CLIENT_ID,
-        redirect_uri=_REDIRECT_URI,
-        scope="openid",
-        state="im_not_a_browser",
-        code_challenge_method="S256",
-        code_challenge=code_challenge,
-    ))
+    auth_resp = requests.get(
+        _PROVIDER + "/protocol/openid-connect/auth",
+        params=dict(
+            protocol="oauth2",
+            response_type="code",
+            client_id=_CLIENT_ID,
+            redirect_uri=_REDIRECT_URI,
+            scope="openid",
+            state="im_not_a_browser",
+            code_challenge_method="S256",
+            code_challenge=code_challenge,
+        ),
+    )
     auth_resp.raise_for_status()
 
-    form_action = html.unescape(re.search('<form\s+.*?\s+action="(.*?)"', auth_resp.text, re.DOTALL).group(1))
+    form_action = html.unescape(re.search(r'<form\s+.*?\s+action="(.*?)"', auth_resp.text, re.DOTALL).group(1))
 
     form_resp = requests.post(
         url=form_action,
@@ -57,7 +60,7 @@ def get_access_token(username: str, password: str):
     url_redirected_to = form_resp.headers["Location"]
     query = urllib.parse.urlparse(url_redirected_to).query
     redirect_params = urllib.parse.parse_qs(query)
-    auth_code = redirect_params['code'][0]
+    auth_code = redirect_params["code"][0]
 
     token_resp = requests.post(
         url=_PROVIDER + "/protocol/openid-connect/token",

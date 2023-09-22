@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
-from typing import List
 
 import requests
 from dateutil.parser import isoparse
 from flask import current_app
-from ics import Event, Calendar
+from ics import Calendar, Event
 
 _event_type_to_tag_map = {
     "Лекции": "Лек",
@@ -24,7 +25,7 @@ _raw_event_key_names = {
 _CALENDAR_CREATOR_VALUE = "my-itmo-ru-to-ical"
 
 
-def get_raw_events(auth_token: str) -> List[dict]:
+def get_raw_events(auth_token: str) -> list[dict]:
     resp = requests.get(
         "https://my.itmo.ru/api/schedule/schedule/personal",
         params=dict(
@@ -72,7 +73,7 @@ def _raw_event_to_location(re: dict):
     return result if result else None
 
 
-def raw_events_to_calendar(raw_events: List[dict]):
+def raw_events_to_calendar(raw_events: list[dict]):
     calendar = Calendar()
     calendar.creator = _CALENDAR_CREATOR_VALUE
     for raw_event in raw_events:
