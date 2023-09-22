@@ -1,0 +1,4 @@
+_.handlers  # unused attribute (src\app.py:13)
+application  # unused variable (src\app.py:15)
+_.creator  # unused attribute (src\calendar_processing.py:78)
+_.url  # unused attribute (src\calendar_processing.py:88)
