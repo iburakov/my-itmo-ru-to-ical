@@ -24,7 +24,7 @@ _creds_hash = get_credentials_hash(app.config["ISU_USERNAME"], app.config["ISU_P
 _calendar_route = f"/calendar/{_creds_hash}"
 app.logger.info(f"URL path for calendar: {_calendar_route}")
 
-if app.config["SENTRY_DSN"]:
+if app.config.get("SENTRY_DSN"):
     sentry_sdk.init(
         dsn=app.config["SENTRY_DSN"],
         integrations=[FlaskIntegration()],
