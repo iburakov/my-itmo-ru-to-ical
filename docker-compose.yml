@@ -3,6 +3,7 @@ version: "3"
 services:
   my-itmo-ru-to-ical:
     build:
+      target: runner
       context: "."
 
     ports:
