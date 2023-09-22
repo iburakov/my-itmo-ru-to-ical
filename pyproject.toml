@@ -6,14 +6,122 @@ authors = ["iburakov <speedwatson@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-ics = "^0.7"
+python = "^3.11"
+ics = "^0.7.2"
 Flask = "^2.0.2"
 requests = "^2.26.0"
 sentry-sdk = {extras = ["flask"], version = "^1.4.3"}
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.291"
+black = "^23.9.1"
+mypy = "^1.5.1"
+vulture = "^2.9.1"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line-length = 120
+
+
+[tool.mypy]
+files = ["src"]
+
+
+[tool.ruff]
+line-length = 120
+select = [
+    # A set of chosen linter rules is specified here.
+    # See https://beta.ruff.rs/docs/rules/ for more info.
+    # pyflakes (simple obvious errors)
+    "F",
+    # pycodestyle (style linter, pep8, black-compatible)
+    "E",
+    "W",
+    # pep8-naming (style linter, pep8 naming conventions)
+    "N",
+    # isort (imports sorting)
+    "I",
+    # mccabe (cyclomatic complexity analyzer to prevent overcomplicated functions)
+    "C90",
+    # pyupgrade (possible syntax upgrades checker)
+    "UP",
+    # eradicate (commented-out code finder for it to be removed)
+    "ERA",
+    # flake8-2020 (errors related to sys.version or sys.version_info, just in case)
+    "YTT",
+    # flake8-async (async-related mistakes/errors)
+    "ASYNC",
+    # flake8-builtins (checks builtin names shadowing, it's better not to)
+    "A",
+    # flake8-commas (to enforce trailing commas)
+    "COM",
+    # flake8-future-annotations (to ensure enabling modern (3.7+) postponed evaluation of type hints)
+    "FA",
+    # flake8-import-conventions (to enforce standartized import aliases like "import pandas as pd")
+    "ICN",
+    # flake8-no-pep420 (to enforce presence of __init__.py in packages)
+    "INP",
+    # flake8-print (to disallow print statements)
+    "T20",
+    # flake8-pytest-style (to improve pytest-related style consistency)
+    "PT",
+    # flake8-quotes (to enforce quotes style)
+    "Q",
+    # flake8-return (checks mistakes related to return values)
+    "RET",
+    # flake8-use-pathlib (to enforce pathlib usage instead of os.path)
+    "PTH",
+    # tryceratops (try/except-related advices)
+    "TRY",
+    # ruff-specific advices
+    "RUF",
+]
+ignore = [
+    "E501",   # allow lines longer than 80 symbols (up to 120)
+    "RET504", # allow "unnecessary" assignments before return statements as it's often useful for chaning data transformations
+    "TRY003", # allow something like raise ValueError(f"Formatting {this} error message on the spot here"). too strict!
+]
+unfixable = [
+    "ERA001", # prohibit to "auto-fix" (=remove) commented-out code
+]
+src = ["src"]
+
+[tool.ruff.mccabe]
+max-complexity = 7
+
+
+[tool.vulture]
+# Vulture is a tool that statically finds unreachable code or unused attributes in Python programs.
+# Doing it without running the code in a language as dynamic as Python is non-trivial.
+# Hence, Vulture has some notion of "confidence", but imho it's pretty weird, since obvious unused global functions are 
+# given 60% confidence anyway just because they're functions (I guess?). Confidence depends on object's type, among other things.
+min_confidence = 60
+# 60% confidence threshold yields a lot of false positives, but 70% threshold yields a lot of false negatives.
+# The only way to get a good result is to use a 60% with a whitelist, adding false positives to it as they appear:
+#   1) Initialize a whitelist (once per project): 
+#           $ vulture --make-whitelist > vulture_whitelist.txt
+#   2) During development, run vulture and review the results. This config in pyproject.toml is picked up, so 
+#      vulture_whitelist.txt is picked up too (it's specified in the `paths` below) and false positives are ignored:
+#           $ vulture
+#   3) When all the new true positives are fixed, add remaining false positives to the whitelist: 
+#           $ vulture --make-whitelist >> vulture_whitelist.txt
+#   4) Keep in mind that if some false positives tend to appear again (like FastAPI's `@app`-decorated functions),
+#      they better be added to the ignore list below, not to the whitelist.
+paths = ["src", "vulture_whitelist.txt"]
+ignore_decorators = [
+    # FastAPI, Flask
+    "@app.route",
+    "@app.exception_handler",
+    "@app.get",
+    "@app.post",
+    "@app.put",
+    "@app.delete",
+    "@app.patch",
+]
+ignore_names = []
+sort_by_size = true
