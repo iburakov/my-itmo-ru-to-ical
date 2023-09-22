@@ -5,13 +5,13 @@ on:
     branches: main
 
 jobs:
+  run-code-checks:
+    uses: ./.github/workflows/code-checks.yml
+    name: Check the code
   build-and-publish:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
-      - uses: ./.github/workflows/code-checks.yml
-        name: Check the code
-
       - uses: satackey/action-docker-layer-caching@v0.0.11
         name: Cache Docker layers
         continue-on-error: true
