@@ -1,0 +1,24 @@
+name: Update the latest image in the registry
+
+on:
+  push:
+    branches: main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: ./.github/workflows/code-checks.yml
+        name: Check the code
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        name: Cache Docker layers
+        continue-on-error: true
+
+      - uses: pmorelli92/github-container-registry-build-push@2.0.0
+        name: Build and publish the latest image to GitHub Container Registry
+        with:
+          github-push-secret: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: my-itmo-ru-to-ical
+          docker-image-tag: latest

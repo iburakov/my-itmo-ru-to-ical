@@ -1,0 +1,46 @@
+name: Check the code
+
+on:
+  pull_request:
+  workflow_call: # for calls of this workflow from image-builder
+
+jobs:
+  python-checks:
+    timeout-minutes: 5
+    runs-on: ubuntu-22.04
+    name: python-${{ matrix.tool }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tool: black
+            run_cmd: black --check --diff src
+          - tool: ruff
+            run_cmd: ruff check --diff src
+          - tool: mypy
+            # for mypy we need to install all deps for type hints, type stubs and mypy plugins
+            setup_cmd: |
+              poetry install --no-root
+          - tool: vulture
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 1.6.1
+      - name: Install ${{ matrix.tool }} with a version from poetry.lock
+        # we'll use system python since we're in an action container
+        run: |
+          poetry config virtualenvs.create false
+          poetry export --only=dev --without-hashes \
+            | grep ${{ matrix.tool }} \
+            | pip install -r /dev/stdin
+      - name: Run a ${{ matrix.tool }}-specific setup command
+        if: ${{ matrix.setup_cmd }}
+        run: ${{ matrix.setup_cmd }}
+      - name: Check Python code with ${{ matrix.tool }}
+        # run provided run_cmd or just call tool by name with no arguments
+        run: |
+          ${{ matrix.run_cmd && matrix.run_cmd || matrix.tool }}
