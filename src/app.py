@@ -15,7 +15,10 @@ logging.getLogger("werkzeug").handlers = []  # prevent duplicated logging output
 app = Flask(__name__)
 application = app  # for wsgi compliance
 
-app.config.from_prefixed_env("ITMO_ICAL", loads=str)
+prefix = "ITMO_ICAL"
+app.config.from_prefixed_env(prefix, loads=str)
+assert app.config["ISU_USERNAME"], f"{prefix}_ISU_USERNAME env var is required"
+assert app.config["ISU_PASSWORD"], f"{prefix}_ISU_PASSWORD env var is required"
 
 _creds_hash = get_credentials_hash(app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
 _calendar_route = f"/calendar/{_creds_hash}"
