@@ -37,7 +37,7 @@ RUN set -ex \
     \) -exec rm -rf '{}' +
 
 # Integrating poetry, https://stackoverflow.com/a/69094575/8682376
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 -
+RUN pip install "poetry==1.2.0"
 ENV PATH "$PATH:/root/.local/bin/"
 
 RUN mkdir /var/dock
