@@ -17,8 +17,8 @@ application = app  # for wsgi compliance
 
 prefix = "ITMO_ICAL"
 app.config.from_prefixed_env(prefix, loads=str)
-assert app.config["ISU_USERNAME"], f"{prefix}_ISU_USERNAME env var is required"
-assert app.config["ISU_PASSWORD"], f"{prefix}_ISU_PASSWORD env var is required"
+assert "ISU_USERNAME" in app.config, f"{prefix}_ISU_USERNAME env var is required"
+assert "ISU_PASSWORD" in app.config, f"{prefix}_ISU_PASSWORD env var is required"
 
 _creds_hash = get_credentials_hash(app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
 _calendar_route = f"/calendar/{_creds_hash}"
