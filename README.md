@@ -2,31 +2,43 @@
 
 Сервис, который ходит на my.itmo.ru за расписанием и экспортирует его как iCalendar с публичной ссылкой. Позволяет автоматически и с автообновлением экспортировать пары в календари Google, iCloud и другие.
 
-## Пререквизиты
+## Что нужно
 
-К сожалению, нужен логин и пароль от ИСУ, поэтому безопасности ради публичного сервиса не будет.
-Понадобится:
+Логин и пароль от ИСУ, поэтому безопасности ради захостить себе сервис придётся самостоятельно.
 
-- сервер с публичным IP адресом;
-- `git`, `docker`, `docker-compose` в нём.
+Нужен **личный** сервер (без доступа посторонних) с `docker` на нём.
 
-## Как запустить
-1. 	Склонировать репозиторий:
-	```bash
-	git clone https://github.com/iburakov/my-itmo-ru-to-ical.git && cd my-itmo-ru-to-ical
-	```
-1. Заполнить конфиг:
-	```bash
-	cp config/config.py.template config/config.py && vim config/config.py
-	```
-1. Запустить сервис: `docker-compose up -d`
-1. Достать ссылку из логов: `docker-compose logs | grep "path for calendar"`
-1. Собрать ссылку: `http://<ip/domain сервера>:35601<path>`
-1. Если по ссылке скачивается .ics файл, всё работает
-1. Импортировать ссылку в свой календарь
-1. ???
-1. PROFIT!!!
+## Как завести
 
-PS. Ссылка содержит хеш имени пользователя и пароля. Меняются данные - меняется ссылка.
+1. Подставить username/password в команду и запустить контейнер:
 
-PPPS. Если вдруг стандартный порт порт занят, поправьте первый порт в `docker-compose.yml` на свободный.
+   ```bash
+   APP_PORT=35601
+
+   docker run -d \
+   	--restart=unless-stopped \
+   	--name itmo_ical \
+   	-p=$APP_PORT:35601 \
+   	-e ITMO_ICAL_ISU_USERNAME=100000 \
+   	-e ITMO_ICAL_ISU_PASSWORD=XXXXXXXXXXXXX \
+   	ghcr.io/iburakov/my-itmo-ru-to-ical
+   ```
+
+2. Получить публичную ссылку на календарь:
+
+   ```bash
+   URL_PATH=$(docker logs itmo_ical 2>&1 | grep -oh '/calendar/.*')
+   HOST_IP=$(curl -s ipinfo.io/ip)
+
+   echo "http://$HOST_IP:$APP_PORT$URL_PATH"
+
+   # should look like
+   # http://93.184.216.34:35601/calendar/gnKZT88jeuKDdhh7Ow8mwsAbMpIyVKaCBpl2CtqJqYI
+   ```
+
+3. Если по ссылке скачивается .ics файл, всё работает
+4. Импортировать ссылку в свой календарь
+5. ???
+6. PROFIT!!!
+
+PS. Ссылка содержит хеш имени пользователя и пароля, чтобы она была и неподбираемой для посторонних, и относительно постоянной без использования какого-либо хранилища. Стоит иметь в виду, что меняется username/password - меняется ссылка.
