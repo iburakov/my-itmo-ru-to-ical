@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import logging
 from datetime import date
+from typing import Iterable
 
-import requests
+from aiohttp import ClientSession
+
+from utils.error_handling import catch_errors_to_empty_iter
+
+logger = logging.getLogger(__name__)
+
+_API_BASE_URL = "https://my.itmo.ru/api"
 
 
 def _get_date_range_params() -> dict:
@@ -16,18 +24,25 @@ def _get_date_range_params() -> dict:
     )
 
 
-def get_raw_events(auth_token: str) -> list[dict]:
-    resp = requests.get(
-        "https://my.itmo.ru/api/schedule/schedule/personal",
-        params=_get_date_range_params(),
-        headers={"Authorization": f"Bearer {auth_token}"},
-    )
+async def _get_calendar(session: ClientSession, auth_token: str, path: str) -> dict:
+    url = _API_BASE_URL + path
+    params = _get_date_range_params()
+    logger.info(f"Getting calendar from {url}, using params {params}")
+
+    resp = await session.get(url, params=params, headers={"Authorization": f"Bearer {auth_token}"})
     resp.raise_for_status()
+    return await resp.json()
 
-    days = resp.json()["data"]
-    raw_events = []
-    for day in days:
-        for lesson in day["lessons"]:
-            raw_events.append(dict(date=day["date"], **lesson))
 
-    return raw_events
+@catch_errors_to_empty_iter
+async def get_raw_lessons(session: ClientSession, auth_token: str) -> Iterable[dict]:
+    resp_json = await _get_calendar(session, auth_token, "/schedule/schedule/personal")
+    days = resp_json["data"]
+    return (dict(date=day["date"], **lesson) for day in days for lesson in day["lessons"])
+
+
+@catch_errors_to_empty_iter
+async def get_raw_pe_lessons(session: ClientSession, auth_token: str) -> Iterable[dict]:
+    resp_json = await _get_calendar(session, auth_token, "/sport/my_sport/calendar")
+    days = resp_json["result"]
+    return (dict(**lesson) for day in days for lesson in day["lessons"])

@@ -1,13 +1,17 @@
 import logging
+from asyncio import gather
+from itertools import chain
 
 import sentry_sdk
+from aiohttp import ClientSession
 from flask import Flask, Response
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from auth import get_access_token
-from calendar_processing import raw_events_to_calendar
+from calendar_processing import build_calendar, calendar_to_ics_text
 from credentials_hashing import get_credentials_hash
-from main_api import get_raw_events
+from lessons_to_events import raw_lesson_to_event, raw_pe_lesson_to_event
+from main_api import get_raw_lessons, get_raw_pe_lessons
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("werkzeug").handlers = []  # prevent duplicated logging output
@@ -33,11 +37,25 @@ if app.config.get("SENTRY_DSN"):
 
 
 @app.route(_calendar_route)
-def get_calendar():
-    token = get_access_token(app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
-    events = get_raw_events(token)
-    calendar = raw_events_to_calendar(events)
-    return Response("\n".join(map(str.strip, calendar)), content_type="text/calendar")
+async def get_calendar():
+    async with ClientSession() as session:
+        token = await get_access_token(session, app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
+
+        app.logger.info("Gathering lessons...")
+        lessons, pe_lessons = await gather(
+            get_raw_lessons(session, token),
+            get_raw_pe_lessons(session, token),
+        )
+        app.logger.info("Converting lessons to calendar events...")
+        lesson_events = map(raw_lesson_to_event, lessons)
+        pe_lesson_events = map(raw_pe_lesson_to_event, pe_lessons)
+
+        app.logger.info("Building calendar...")
+        calendar = build_calendar(chain(lesson_events, pe_lesson_events))
+        calendar_text = calendar_to_ics_text(calendar)
+
+        app.logger.info("Success, responding with calendar text...")
+        return Response(calendar_text, content_type="text/calendar")
 
 
 sentry_sdk.capture_message(f"my-itmo-ru-to-ical started for {app.config['ISU_USERNAME']}, hash {_creds_hash}")
