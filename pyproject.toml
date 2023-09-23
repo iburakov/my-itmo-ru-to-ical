@@ -8,9 +8,10 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.11"
 ics = "^0.7.2"
-Flask = "^2.0.2"
-requests = "^2.26.0"
+Flask = {extras = ["async"], version = "^2.3.3"}
 sentry-sdk = {extras = ["flask"], version = "^1.4.3"}
+aiohttp = "^3.8.5"
+async-cache = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.291"
@@ -36,7 +37,7 @@ files = ["src"]
 [[tool.mypy.overrides]]
 # https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
 # it's better to disable untyped modules on a per-module basis
-module = ["ics.*"]
+module = ["ics.*", "cache.*"]
 ignore_missing_imports = true
 
 
