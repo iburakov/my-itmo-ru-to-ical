@@ -6,8 +6,6 @@ from typing import Iterable
 
 from aiohttp import ClientSession
 
-from utils.error_handling import catch_errors_to_empty_iter
-
 logger = logging.getLogger(__name__)
 
 _API_BASE_URL = "https://my.itmo.ru/api"
@@ -34,14 +32,12 @@ async def _get_calendar(session: ClientSession, auth_token: str, path: str) -> d
     return await resp.json()
 
 
-@catch_errors_to_empty_iter
 async def get_raw_lessons(session: ClientSession, auth_token: str) -> Iterable[dict]:
     resp_json = await _get_calendar(session, auth_token, "/schedule/schedule/personal")
     days = resp_json["data"]
     return (dict(date=day["date"], **lesson) for day in days for lesson in day["lessons"])
 
 
-@catch_errors_to_empty_iter
 async def get_raw_pe_lessons(session: ClientSession, auth_token: str) -> Iterable[dict]:
     resp_json = await _get_calendar(session, auth_token, "/sport/my_sport/calendar")
     days = resp_json["result"]
