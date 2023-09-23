@@ -46,11 +46,10 @@ async def get_calendar():
             get_raw_lessons(session, token),
             get_raw_pe_lessons(session, token),
         )
-        app.logger.info("Converting lessons to calendar events...")
+
+        app.logger.info("Building the calendar...")
         lesson_events = map(raw_lesson_to_event, lessons)
         pe_lesson_events = map(raw_pe_lesson_to_event, pe_lessons)
-
-        app.logger.info("Building calendar...")
         calendar = build_calendar(chain(lesson_events, pe_lesson_events))
         calendar_text = calendar_to_ics_text(calendar)
 
