@@ -1,6 +1,4 @@
 import logging
-from asyncio import gather
-from itertools import chain
 
 import sentry_sdk
 from aiohttp import ClientSession
@@ -10,8 +8,8 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from auth import get_access_token
 from calendar_processing import build_calendar, calendar_to_ics_text
 from credentials_hashing import get_credentials_hash
-from lessons_to_events import raw_lesson_to_event, raw_pe_lesson_to_event
-from main_api import get_raw_lessons, get_raw_pe_lessons
+from lessons_to_events import raw_lesson_to_event
+from main_api import get_raw_lessons
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("werkzeug").handlers = []  # prevent duplicated logging output
@@ -42,15 +40,11 @@ async def get_calendar():
         token = await get_access_token(session, app.config["ISU_USERNAME"], app.config["ISU_PASSWORD"])
 
         app.logger.info("Gathering lessons...")
-        lessons, pe_lessons = await gather(
-            get_raw_lessons(session, token),
-            get_raw_pe_lessons(session, token),
-        )
+        lessons = await get_raw_lessons(session, token)
 
         app.logger.info("Building the calendar...")
         lesson_events = map(raw_lesson_to_event, lessons)
-        pe_lesson_events = map(raw_pe_lesson_to_event, pe_lessons)
-        calendar = build_calendar(chain(lesson_events, pe_lesson_events))
+        calendar = build_calendar(lesson_events)
         calendar_text = calendar_to_ics_text(calendar)
 
         app.logger.info("Success, responding with calendar text...")

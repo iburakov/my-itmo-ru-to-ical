@@ -22,10 +22,10 @@ def _get_date_range_params() -> dict:
     )
 
 
-async def _get_calendar(session: ClientSession, auth_token: str, path: str) -> dict:
+async def _get_calendar_data(session: ClientSession, auth_token: str, path: str) -> dict:
     url = _API_BASE_URL + path
     params = _get_date_range_params()
-    logger.info(f"Getting calendar from {url}, using params {params}")
+    logger.info(f"Getting data from {url}, using params {params}")
 
     resp = await session.get(url, params=params, headers={"Authorization": f"Bearer {auth_token}"})
     resp.raise_for_status()
@@ -33,12 +33,6 @@ async def _get_calendar(session: ClientSession, auth_token: str, path: str) -> d
 
 
 async def get_raw_lessons(session: ClientSession, auth_token: str) -> Iterable[dict]:
-    resp_json = await _get_calendar(session, auth_token, "/schedule/schedule/personal")
+    resp_json = await _get_calendar_data(session, auth_token, "/schedule/schedule/personal")
     days = resp_json["data"]
     return (dict(date=day["date"], **lesson) for day in days for lesson in day["lessons"])
-
-
-async def get_raw_pe_lessons(session: ClientSession, auth_token: str) -> Iterable[dict]:
-    resp_json = await _get_calendar(session, auth_token, "/sport/my_sport/calendar")
-    days = resp_json["result"]
-    return (dict(**lesson) for day in days for lesson in day["lessons"])

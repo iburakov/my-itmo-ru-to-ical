@@ -61,13 +61,3 @@ def raw_lesson_to_event(raw_lesson: dict) -> Event:
         event.url = raw_lesson["zoom_url"]
 
     return event
-
-
-def raw_pe_lesson_to_event(raw_pe_lesson: dict) -> Event:
-    return Event(
-        name=f"[Физра] {raw_pe_lesson['section_name']}",
-        begin=isoparse(f"{raw_pe_lesson['date']}"),
-        end=isoparse(f"{raw_pe_lesson['date_end']}"),
-        description=_raw_lesson_to_description(raw_pe_lesson),
-        location=raw_pe_lesson["room_name"],
-    )
