@@ -51,10 +51,15 @@ def _raw_lesson_to_location(raw_lesson: dict):
 
 
 def raw_lesson_to_event(raw_lesson: dict) -> Event:
+    begin = isoparse(f"{raw_lesson['date']}T{raw_lesson['time_start']}:00+03:00")
+    end = isoparse(f"{raw_lesson['date']}T{raw_lesson['time_end']}:00+03:00")
+    # If there is a mistake in event
+    if begin > end:
+        begin, end = end, begin
     event = Event(
         name=f"[{_lesson_type_to_tag(raw_lesson['type'])}] {raw_lesson['subject']}",
-        begin=isoparse(f"{raw_lesson['date']}T{raw_lesson['time_start']}:00+03:00"),
-        end=isoparse(f"{raw_lesson['date']}T{raw_lesson['time_end']}:00+03:00"),
+        begin=begin,
+        end=end,
         description=_raw_lesson_to_description(raw_lesson),
         location=_raw_lesson_to_location(raw_lesson),
     )
