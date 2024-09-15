@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "my-itmo-ru-to-ical"
-version = "1.0.0"
+version = "1.1.0"
 description = "A simple app exporting the scheudle from my.itmo.ru in iCalendar format."
 authors = ["iburakov <speedwatson@gmail.com>"]
 license = "MIT"
