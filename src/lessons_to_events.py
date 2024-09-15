@@ -54,9 +54,9 @@ def _raw_lesson_to_location(raw_lesson: dict):
 
 def _raw_lesson_to_uuid(raw_lesson: dict):
     elements = [
-        raw_lesson['date'],
-        raw_lesson['time_start'],
-        raw_lesson['subject']
+        raw_lesson["date"],
+        raw_lesson["time_start"],
+        raw_lesson["subject"],
     ]
     result = ", ".join(elements)
     md5_of_lesson = md5(result.encode("utf-8")).hexdigest()
