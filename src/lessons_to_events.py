@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from hashlib import md5
+from uuid import UUID
 
 from dateutil.parser import isoparse
 from ics import Event
@@ -50,6 +52,18 @@ def _raw_lesson_to_location(raw_lesson: dict):
     return result if result else None
 
 
+def _raw_lesson_to_uuid(raw_lesson: dict):
+    elements = [
+        raw_lesson["date"],
+        raw_lesson["time_start"],
+        raw_lesson["subject"],
+    ]
+    result = ", ".join(elements)
+    md5_of_lesson = md5(result.encode("utf-8")).hexdigest()
+    result_uuid = str(UUID(hex=md5_of_lesson))
+    return result_uuid
+
+
 def raw_lesson_to_event(raw_lesson: dict) -> Event:
     begin = isoparse(f"{raw_lesson['date']}T{raw_lesson['time_start']}:00+03:00")
     end = isoparse(f"{raw_lesson['date']}T{raw_lesson['time_end']}:00+03:00")
@@ -62,6 +76,7 @@ def raw_lesson_to_event(raw_lesson: dict) -> Event:
         end=end,
         description=_raw_lesson_to_description(raw_lesson),
         location=_raw_lesson_to_location(raw_lesson),
+        uid=_raw_lesson_to_uuid(raw_lesson),
     )
     if raw_lesson["zoom_url"]:
         event.url = raw_lesson["zoom_url"]
